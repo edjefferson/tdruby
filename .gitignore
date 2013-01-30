@@ -1,4 +1,4 @@
 $ cat .gitignore
 
 apikey
-tdrsettings-sample.yaml
+tdrsettings.yaml
