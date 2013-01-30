@@ -16,9 +16,10 @@ id = 0
 epochtime = 0
 tablenumber = con.query("SELECT count(*) from information_schema.tables WHERE table_schema = 'tdoutputs'")
 
-querynumber= tablenumber.fetch_row
-con.query("CREATE TABLE q#{querynumber[0]} (id int, nicetime datetime, event_type varchar(255)
-,vector varchar(255),time int,solution varchar(255),timestamp int,badge_type varchar(255),badge_variant varchar(255),retailer_id int,badge_name varchar(255),product_id int,sku varchar(255),message_identifier bigint,session_id varchar(255),url varchar(255),content_hash varchar(255))")
+querynumber = tablenumber.fetch_row
+
+con.query("CREATE TABLE q#{querynumber[0]} (id int, query_id int, nicetime datetime, event_type varchar(255)
+,vector varchar(255),time int,solution varchar(255),timestamp int,badge_type varchar(255),badge_variant varchar(255),retailer_id int,badge_name varchar(255),product_id int,sku varchar(255),published_review_count int, message_identifier bigint,session_id varchar(255),url varchar(255),content_hash varchar(255))")
 
 job = cln.query('tracking', ARGV[0])
 until job.finished?
@@ -29,19 +30,23 @@ end
 rowcount = job.result.size
 job.update_status!  # get latest info
 
-while id<rowcount
+# while id<rowcount
+job.result_each do |result|
+  attributes, timestamp = result
+
+  epochtime=timestamp
+  fattributes=attributes.select {|k,v| ["event_type", "time", "vector", "solution", "timestamp", "badge_type", "badge_variant", "retailer_id", "badge_name", "product_id", "message_identifier", "session_id", "url", "content_hash","published_review_count"].include?(k) }
   
-  
-  epochtime=job.result[id][1]
-  data=job.result[id][0]
-  sqlkeys=data.keys.join(",")
-  sqlvalues= "'" << data.values.join("','") << "'"
+  sqlkeys=fattributes.keys.join(",")
+  sqlvalues= "'" << fattributes.values.join("','") << "'"
   
   id=+1
-  con.query("INSERT INTO q#{querynumber[0]}(id, nicetime, #{sqlkeys}) VALUES('#{id}','#{Time.at(epochtime)}',#{sqlvalues})")
+  con.query("INSERT INTO q#{querynumber[0]}(id, query_id, nicetime, #{sqlkeys}) VALUES('#{id}','#{querynumber[0]}','#{Time.at(epochtime)}',#{sqlvalues})")
+  
   
   
 
 end
 
 
+con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{ARGV[0]}')")
