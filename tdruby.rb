@@ -19,6 +19,7 @@ tablenumber = con.query("SELECT count(*) from information_schema.tables WHERE ta
 querynumber = tablenumber.fetch_row
 
 arg = ARGV[0]
+cleanarg = ARGV[0].gsub(/[^0-9a-z ]/i, '')
 columns = ARGV[0][/SELECT(.*?)FROM/,1].strip
 
 
@@ -60,6 +61,7 @@ if columns == "*"
 
 else
   
+
   keys=columns.split(",")
   keyssql2=Array.new
   keyssql=keys.each do |a|
@@ -77,7 +79,7 @@ else
 
   
   con.query("CREATE TABLE q#{querynumber[0]} (id int,query_id int,#{stringsqlkeysdef})")
-  
+begin  
   job = cln.query('tracking', ARGV[0])
   until job.finished?
     sleep 2
@@ -87,14 +89,15 @@ else
   job.update_status!  # get latest info
 
   job.result_each do |result|
-    result
+    
     sqlvalues=result.join(",")
     id=+1
 
-    con.query("INSERT INTO q#{querynumber[0]}(id, query_id, #{stringsqlkeys}) VALUES('#{id}','#{querynumber[0]}','#{sqlvalues}')")
+    con.query("INSERT INTO q#{querynumber[0]}(id, query_id, #{stringsqlkeys}) VALUES('#{id}','#{querynumber[0]}',#{sqlvalues})")
   
   end
   
-end
 
-con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{ARGV[0]}')")
+
+con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{cleanarg}')")
+end
