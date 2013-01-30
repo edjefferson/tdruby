@@ -2,3 +2,4 @@ $ cat .gitignore
 
 apikey
 tdrsettings.yaml
+.DS_Store
