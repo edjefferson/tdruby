@@ -70,9 +70,9 @@ else
     
   end
   
-  
-  stringsqlkeys=keyssql2.join(",").gsub(',', ' varchar(255),')
-  stringsqlkeysdef = stringsqlkeys << " varchar(255)"
+  stringsqlkeys=keyssql2.join(",")
+  stringsqlkeysvar=keyssql2.join(",").gsub(',', ' varchar(255),')
+  stringsqlkeysdef = stringsqlkeysvar << " varchar(255)"
   
 
   
@@ -87,12 +87,14 @@ else
   job.update_status!  # get latest info
 
   job.result_each do |result|
+    result
     sqlvalues=result.join(",")
     id=+1
-    con.query("INSERT INTO q#{querynumber[0]}(id, query_id, nicetime, #{stringsqlkeys}) VALUES('#{id}','#{querynumber[0]}',#{sqlvalues})")
+
+    con.query("INSERT INTO q#{querynumber[0]}(id, query_id, #{stringsqlkeys}) VALUES('#{id}','#{querynumber[0]}','#{sqlvalues}')")
   
   end
   
 end
 
-#con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{ARGV[0]}')")
+con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{ARGV[0]}')")
