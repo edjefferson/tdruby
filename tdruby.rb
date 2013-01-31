@@ -19,8 +19,8 @@ tablenumber = con.query("SELECT count(*) from information_schema.tables WHERE ta
 querynumber = tablenumber.fetch_row
 
 arg = ARGV[0]
-cleanarg = ARGV[0].gsub(/[^0-9a-z ]/i, '')
-columns = ARGV[0][/SELECT(.*?)FROM/,1].strip
+cleanarg = Mysql.escape_string(ARGV[0])
+columns = ARGV[0].downcase[/select(.*?)from/,1].strip
 
 
 
@@ -48,7 +48,7 @@ if columns == "*"
   
     id=+1
     con.query("INSERT INTO q#{querynumber[0]}(id, query_id, nicetime, #{sqlkeys}) VALUES('#{id}','#{querynumber[0]}','#{Time.at(epochtime)}',#{sqlvalues})")
-  
+    con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{cleanarg}')")
   
   
 
@@ -79,7 +79,7 @@ else
 
   
   con.query("CREATE TABLE q#{querynumber[0]} (id int,query_id int,#{stringsqlkeysdef})")
-begin  
+
   job = cln.query('tracking', ARGV[0])
   until job.finished?
     sleep 2
@@ -99,5 +99,6 @@ begin
   
 
 
-con.query("INSERT INTO query_index(id, query) VALUES('#{querynumber[0]}','#{cleanarg}')")
+
 end
+
